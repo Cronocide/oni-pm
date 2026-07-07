@@ -1,0 +1,44 @@
+# Oni gptokeyb config
+
+# D-pad as arrow keys
+up = w
+down = s
+left = a
+right = d
+
+# Face buttons
+a = c
+b = mouse_left
+x = leftctrl
+y = space
+a_hk =
+b_hk =
+x_hk = tab
+y_hk = e
+
+# Shoulder buttons
+l1 = q
+r1 = leftshift
+l2 = f1
+r2 = leftalt
+
+# Menu buttons
+back = esc
+start = enter
+
+# Left analog stick as mouse
+right_analog_up = mouse_movement_up
+right_analog_down = mouse_movement_down
+right_analog_left = mouse_movement_left
+right_analog_right = mouse_movement_right
+
+# Mouse clicks via analog stick buttons
+l3 = shiftleft
+r3 = shiftleft
+
+# Mouse and deadzone tuning
+deadzone_mode = scaled_radial
+deadzone = 1000
+deadzone_scale = 8
+deadzone_delay = 16
+mouse_scale = 8192

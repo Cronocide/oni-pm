@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gameList>
+  <game>
+    <path>./oni.sh</path>
+    <name>Oni</name>
+    <desc>Oni is a third-person action game, focused on melee combat mixed with some gunplay. The player can punch, kick, and throw enemies; progressing into later levels unlocks stronger moves and combos.</desc>
+    <releasedate>20010129T000000</releasedate>
+    <developer>Bungie West</developer>
+    <publisher>Rockstar Games</publisher>
+    <genre>Action</genre>
+    <image>./oni/cover.jpg</image>
+  </game>
+</gameList>

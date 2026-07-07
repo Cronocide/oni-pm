@@ -1,0 +1,35 @@
+{
+  "version": 4,
+  "name": "oni.zip",
+  "items": [
+    "Oni.sh",
+    "oni"
+  ],
+  "items_opt": [],
+  "attr": {
+    "title": "Oni",
+    "porter": [
+      "Cronocide"
+    ],
+    "desc": "Oni is a third-person action game, focused on melee combat mixed with some gunplay. The player can punch, kick, and throw enemies; progressing into later levels unlocks stronger moves and combos.",
+    "desc_md": "![Oni Logo](https://upload.wikimedia.org/wikipedia/de/thumb/4/4a/Oni_Logo.png/500px-Oni_Logo.png)\n\n**Oni** is a third-person action game, focused on melee combat mixed with some gunplay. As **Konoko**, you'll fight through huge fanstastic 3D environments using a _ground-breaking_ combination of gunplay and hand-to-hand combat to defeat hundreds of devious opponents. From your first bullet to your last kick, surviving Oni's high-tech world of crime and deception will take everything you've got.",
+    "inst": "1. Install a legally-obtained copy of the Windows Oni game\n2. From that installation copy the `GameDataFolder` to your `ports/oni` folder.\n3. Launch the Oni port\n\nModifications to the Oni installation (such as Anniversary Edition mods) are not guaranteed to work with Portmaster.",
+    "inst_md": "1. Install a legally-obtained copy of the Windows Oni game\n2. From that installation copy the `GameDataFolder` to your `ports/oni` folder.\n3. Launch the Oni port\n\nModifications to the Oni installation (such as Anniversary Edition mods) are not guaranteed to work with Portmaster.",
+    "genres": [
+      "action"
+    ],
+    "image": null,
+    "rtr": false,
+    "exp": false,
+    "runtime": [],
+    "store": [],
+    "availability": "paid",
+    "reqs": [
+      "!lowres"
+    ],
+    "arch": [
+      "armhf"
+    ],
+    "min_glibc": ""
+  }
+}
