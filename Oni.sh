@@ -58,6 +58,23 @@ export SDL_VIDEODRIVER=mali
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 export CONTROLS_MAP="$GAMEDIR/controls.gptk"
 
+# If for some reason portmaster functions failed to import, create overrides
+if ! declare -F pm_message >/dev/null; then
+    pm_message() {
+        echo "$@"
+    }
+fi
+if ! declare -F pm_show_error >/dev/null; then
+    pm_show_error() {
+        echo "$@"
+    }
+fi
+if ! declare -F PortMasterDialogExit >/dev/null; then
+    PortMasterDialogExit() {
+        echo -n
+    }
+fi
+
 get_bin() {
   pm_message "Downloading Oni binary"
   wget "https://github.com/Cronocide/oni-armhf/releases/download/v1.0/oni" -O "$GAMEDIR/oni"
