@@ -77,7 +77,7 @@ fi
 
 get_bin() {
   pm_message "Downloading Oni binary"
-  wget "https://github.com/Cronocide/oni-armhf/releases/download/v1.0/oni" -O "$GAMEDIR/oni"
+  wget "https://github.com/Cronocide/oni-armhf/releases/download/v1.1/oni" -O "$GAMEDIR/oni"
   if [ $? -ne 0 ]; then
     pm_message "Failed to download Oni binary"
     return 1
