@@ -126,13 +126,13 @@ EOF
 }
 
 install_port() {
+  check_gamedir || { pm_show_error "Missing GameDataFolder; please copy to $GAMEDIR from an existing Oni installation"; return 1; }
   if [ ! -s "$GAMEDIR/oni" ]; then
     get_bin || { pm_show_error "Unable to download Oni binary from https://github.com/Cronocide/oni-armhf"; return 1; }
   fi
   if [ ! -s "$CONTROLS_MAP" ]; then
     set_controls || { pm_show_error "Please create a .gptk file at $CONTROLS_MAP"; return 1; }
   fi
-  check_gamedir || { pm_show_error "Missing GameDataFolder; please copy to $GAMEDIR from an existing Oni installation"; return 1; }
 }
 
 cd $GAMEDIR
