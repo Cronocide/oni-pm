@@ -152,7 +152,7 @@ if [ ! -d "$GAMEDIR" ]; then
 fi
 
 # Set drive and rom path defaults
-export LD_LIBRARY_PATH="$GAMEDIR/gl4es.armhf:/usr/lib32:/usr/lib:/usr/lib/arm-linux-gnueabihf:/lib/arm-linux-gnueabihf:/usr/lib/mali:/usr/lib:/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$GAMEDIR/gl4es.armhf:/usr/lib32:/usr/lib/arm-linux-gnueabihf:/lib/arm-linux-gnueabihf:/usr/lib/mali:/usr/lib:/lib:$LD_LIBRARY_PATH"
 LOGFILE="$GAMEDIR/oni.log"
 
 # Configure GL4ES
