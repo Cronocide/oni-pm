@@ -61,7 +61,7 @@ http_get() {
             wget "$1" -O "$2"
             { ! [ -f "$2" ] || [[ $(cat "$2" 2>/dev/null) == '' ]]; } && return 1
             return 0
-             fi
+            fi
     fi
     pm_show_error "curl or wget is required to perform this function." && return 1
 }
@@ -178,9 +178,12 @@ export ALSA_PLUGIN_DIR=/usr/lib32/alsa-lib
 
 # perf: visibility ray-grid override (NxN rays/frame; engine default 16-20)
 export ONI_RAYS=16
-export SDL_VIDEODRIVER=mali
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 export CONTROLS_MAP="$GAMEDIR/controls.gptk"
+
+# set videodriver to mali on muos
+unset SDL_VIDEODRIVER
+[ "$CFW_NAME" -eq "muos" ] && export SDL_VIDEODRIVER=mali
 
 export LOGFILE="$GAMEDIR/oni.log"
 
