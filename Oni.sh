@@ -19,7 +19,15 @@ fi
 
 source $controlfolder/control.txt
 source $controlfolder/device_info.txt
+export PORT_32BIT=Y
 [ -f "${controlfolder}/mod_${CFW_NAME}.txt" ] && source "${controlfolder}/mod_${CFW_NAME}.txt"
+
+# Configure GL4ES
+if [ -f "${controlfolder}/libgl_${CFW_NAME}.txt" ]; then 
+  source "${controlfolder}/libgl_${CFW_NAME}.txt"
+else
+  source "${controlfolder}/libgl_default.txt"
+fi
 
 get_controls
 
@@ -155,19 +163,6 @@ fi
 export LD_LIBRARY_PATH="$GAMEDIR/gl4es.armhf:/usr/lib32:/usr/lib/arm-linux-gnueabihf:/lib/arm-linux-gnueabihf:/usr/lib/mali:/usr/lib:/lib:$LD_LIBRARY_PATH"
 LOGFILE="$GAMEDIR/oni.log"
 
-# Configure GL4ES
-export LIBGL_ES=2
-export LIBGL_FB=3
-export LIBGL_GL=21
-export LIBGL_LOGSHADERERROR=1
-export LIBGL_NOHIGHP=1
-export LIBGL_NOPSA=1
-export LIBGL_FBOMAKECURRENT=0
-export LIBGL_FBOUNBIND=0
-
-# Configure gptokeyb
-export TEXTINPUTINTERACTIVE="Y"
-export TEXTINPUTADDEXTRASYMBOLS="Y"
 export SDL_AUDIODRIVER=alsa
 
 # armhf PipeWire client plumbing
@@ -181,12 +176,7 @@ export ONI_RAYS=16
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 export CONTROLS_MAP="$GAMEDIR/controls.gptk"
 
-# set videodriver to mali on muos
-unset SDL_VIDEODRIVER
-[ "$CFW_NAME" -eq "muos" ] && export SDL_VIDEODRIVER=mali
-
 export LOGFILE="$GAMEDIR/oni.log"
-
 
 cd $GAMEDIR
 
@@ -199,7 +189,7 @@ echo "===" >> "$LOGFILE"
 GOVERNOR_SETTING=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)
 echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 
-# Verify or being installation
+# Verify or begin installation
 install_port || { pm_message "Exiting"; exit 1; }
 
 PortMasterDialogExit
@@ -208,16 +198,12 @@ PortMasterDialogExit
 $ESUDO chmod 666 /dev/uinput
 $GPTOKEYB "oni" -c "$CONTROLS_MAP" &
 
-nice -n -10 ./oni >> "$LOGFILE" 2>&1 &
-ONI_PID=$!
-
-wait $ONI_PID 2>/dev/null
+pm_platform_helper oni 
+./oni >> "$LOGFILE" 2>&1
 EXIT_CODE=$?
-
 
 echo "=== Oni exited with code $EXIT_CODE at $(date) ===" >> "$LOGFILE"
 echo "$GOVERNOR_SETTING" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 
-$ESUDO kill -9 $(pidof gptokeyb)
-$ESUDO systemctl restart oga_events &
+pm_finish# Configure GL4ES
 printf "\033c" > /dev/tty0
