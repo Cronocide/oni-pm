@@ -195,6 +195,7 @@ if [ -f "${controlfolder}/libgl_${CFW_NAME}.txt" ]; then
 else
   source "${controlfolder}/libgl_default.txt"
 fi
+export LIBGL_FBOMAKECURRENT=0 LIBGL_FBOUNBIND=0 LIBGL_NOHIGHP=1 LIBGL_NOPSA=1
 
 echo > "$LOGFILE"
 echo "=== Oni starting at $(date) ===" >> "$LOGFILE"
@@ -211,6 +212,53 @@ $GPTOKEYB "oni" -c "$CONTROLS_MAP" &
 pm_platform_helper oni 
 ./oni >> "$LOGFILE" 2>&1
 EXIT_CODE=$?
+
+# START DEBUG BLOCK                                                                                                                                              
+{                                                                                                                                                                                                                         
+echo "----- DEBUG: system -----"                                                                                                                                                                                        
+uname -a                                                                                                                                                                                                                
+[ -f /etc/os-release ] && grep -E "^(NAME|VERSION)=" /etc/os-release                                                                                                                                                    
+echo "CFW_NAME=$CFW_NAME DEVICE_NAME=$DEVICE_NAME DEVICE_ARCH=$DEVICE_ARCH"                                                                                                                                             
+echo "DISPLAY_WIDTH=$DISPLAY_WIDTH DISPLAY_HEIGHT=$DISPLAY_HEIGHT"                                                                                                                                                      
+                                                                                                                                                                                                                        
+echo "----- DEBUG: launch environment -----"                                                                                                                                                                            
+env | grep -E '^(LIBGL|SDL|ONI|LD_LIBRARY_PATH|XDG|SPA|PIPEWIRE|ALSA|WAYLAND|DISPLAY|PORT_32BIT)' | sort                                                                                                                
+                                                                                                                                                                                                                        
+echo "----- DEBUG: port files -----"                                                                                                                                                                                    
+echo "GAMEDIR=$GAMEDIR PWD=$PWD"                                                                                                                                                                                        
+ls -la "$GAMEDIR/oni" "$GAMEDIR/gl4es.armhf/" 2>&1                                                                                                                                                                      
+command -v md5sum >/dev/null && md5sum "$GAMEDIR/gl4es.armhf/libGL.so.1" 2>&1                                                                                                                                           
+                                                                                                                                                                                                                        
+echo "----- DEBUG: which libraries the loader binds -----"                                                                                                                                                              
+ldd ./oni 2>&1                                                                                                                                                                                                          
+                                                                                                                                                                                                                        
+echo "----- DEBUG: system 32-bit GL/EGL/GBM libs -----"                                                                                                                                                                 
+for d in /usr/lib/arm-linux-gnueabihf /lib/arm-linux-gnueabihf /usr/lib32 /usr/lib/mali; do                                                                                                                             
+    [ -d "$d" ] && { echo "== $d"; ls -la "$d" 2>/dev/null | grep -Ei 'mali|gles|egl|libgl|gbm' ; }                                                                                                                       
+done                                                                                                                                                                                                                    
+                                                                                                                                                                                                                        
+echo "----- DEBUG: display/GPU state -----"                                                                                                                                                                             
+ls -la /dev/dri/ 2>&1                                                                                                                                                                                                   
+ls /dev/fb* 2>&1                                                                                                                                                                                                        
+lsmod 2>/dev/null | grep -Ei 'mali|panfrost|bifrost|rockchip'                                                                                                                                                           
+                                                                                                                                                                                                                        
+echo "----- DEBUG: end preflight -----"                                                                                                                                                                                 
+} >> "$LOGFILE" 2>&1                                                                                                                                                                                                      
+                                                                                                                                                                                                                        
+# Framebuffer sampler: is anything actually being presented? (heuristic)                                                                                                                                                  
+(                                                                                                                                                                                                                         
+sleep 25                                                                                                                                                                                                                
+if [ -r /dev/fb0 ]; then                                                                                                                                                                                                
+    A=$(dd if=/dev/fb0 bs=65536 count=4 2>/dev/null | cksum)                                                                                                                                                              
+    sleep 3                                                                                                                                                                                                               
+    B=$(dd if=/dev/fb0 bs=65536 count=4 2>/dev/null | cksum)                                                                                                                                                              
+    Z=$(dd if=/dev/fb0 bs=65536 count=4 2>/dev/null | tr -d '\0' | wc -c)                                                                                                                                                 
+    echo "DEBUG fb0 sample: A=$A B=$B nonzero_bytes=$Z" >> "$LOGFILE"                                                                                                                                                     
+else                                                                                                                                                                                                                    
+    echo "DEBUG fb0 sample: /dev/fb0 not readable" >> "$LOGFILE"                                                                                                                                                          
+fi                                                                                                                                                                                                                      
+) &                                                                                                                                                                                                                       
+# END DEBUG BLOCK                                                                        
 
 echo "=== Oni exited with code $EXIT_CODE at $(date) ===" >> "$LOGFILE"
 
