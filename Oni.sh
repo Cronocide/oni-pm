@@ -61,6 +61,22 @@ if ! declare -F PortMasterDialogInit >/dev/null; then
     }
 fi
 
+######################################### FUNCTIONS #########################################
+
+# Auto-scale a raw byte count into a human-readable string like "5.2MB" or "1.2GB"
+__pretty_size() {
+    __missing_reqs "awk" && return 1
+    local bytes="${1:-0}" unit num
+    for unit in yb zb eb pb tb gb mb kb; do
+            num=$(b2$unit "$bytes" 2>/dev/null | cut -d' ' -f1)
+            if awk -v n="${num:-0}" 'BEGIN { exit !(n + 0 >= 1) }'; then
+                    echo "${num}${unit^^}"
+                    return
+            fi
+    done
+    echo "${bytes}B"
+}
+
 __missing_reqs() {
     for i in "$@"; do
         [[ "$0" != "$i" ]] && __no_req "$i" && echo "$i is required to perform this function." && return 0
@@ -90,12 +106,14 @@ http_get() {
         pm_show_error "curl or wget is required to perform this function." && return 1
     fi
 
-    local total current pid result
+    local total current pid result pretty_total label
     total=$(http_get_size "$url")
+    pretty_total=""
+    [ -n "$total" ] && [ "$total" -gt 0 ] 2>/dev/null && pretty_total=$(__pretty_size "$total")
 
     [ -e "$PM_PIPE" ] || { PortMasterDialogInit "no-harbour"; PortMasterDialog "messages_begin"; }
 
-    : > "$dest"
+    echo -n > "$dest"
     if ! __no_req "curl"; then
         curl -fsSL "$url" -o "$dest" &
     else
@@ -103,9 +121,16 @@ http_get() {
     fi
     pid=$!
 
+    # The "data" fmt arg is ignored by PortMaster's fifo handler, so the
+    # human-readable size is baked into the label instead of using it.
     while kill -0 "$pid" 2>/dev/null; do
         current=$(wc -c < "$dest" 2>/dev/null)
-        PortMasterDialog "progress" "$message" "${current:-0}" "${total:-0}" "data"
+        if [ -n "$pretty_total" ]; then
+            label="$message ($(__pretty_size "${current:-0}") / $pretty_total)"
+        else
+            label="$message ($(__pretty_size "${current:-0}"))"
+        fi
+        PortMasterDialog "progress" "$label" "${current:-0}" "${total:-0}" "data"
         sleep 0.5
     done
     wait "$pid"
