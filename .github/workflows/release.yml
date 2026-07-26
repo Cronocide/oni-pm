@@ -1,0 +1,27 @@
+name: Build and release port zip
+
+on:
+  push:
+    branches:
+      - trunk
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build oni.zip
+        run: zip -r oni.zip Oni.sh oni README.md port.json screenshot.png gameinfo.xml cover.jpg
+
+      - name: Publish rolling release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          make_latest: true
+          files: oni.zip
