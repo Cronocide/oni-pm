@@ -48,6 +48,18 @@ if ! declare -F PortMasterDialogExit >/dev/null; then
         echo -n
     }
 fi
+# PortMasterDialog/PortMasterDialogInit drive the on-screen progress bar via
+# $PM_PIPE; stub them too so http_get_progress works when run outside PortMaster.
+if ! declare -F PortMasterDialog >/dev/null; then
+    PortMasterDialog() {
+        echo -n
+    }
+fi
+if ! declare -F PortMasterDialogInit >/dev/null; then
+    PortMasterDialogInit() {
+        echo -n
+    }
+fi
 
 __missing_reqs() {
     for i in "$@"; do
@@ -60,24 +72,54 @@ __no_req() {
     return $([[ "$(type $1 2>/dev/null)" == '' ]])
 }
 
-http_get() {
-    if ! __missing_reqs "curl" "tee"; then
-        curl -fsSL "$1" | tee "$2" >/dev/null
-        { ! [ -f "$2" ] || [[ $(cat "$2" 2>/dev/null) == '' ]]; } && return 1
-        return 0
-    else
-        if ! __no_req "wget"; then
-            wget "$1" -O "$2"
-            { ! [ -f "$2" ] || [[ $(cat "$2" 2>/dev/null) == '' ]]; } && return 1
-            return 0
-            fi
+# Total byte size of a URL, via a HEAD request; empty if it can't be determined
+http_get_size() {
+    if ! __no_req "curl"; then
+        curl -fsSIL "$1" 2>/dev/null | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" { size = $2 } END { print size }'
+    elif ! __no_req "wget"; then
+        wget --spider --server-response -O /dev/null "$1" 2>&1 | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" { size = $2 } END { print size }'
     fi
-    pm_show_error "curl or wget is required to perform this function." && return 1
+}
+
+# Downloads "$1" to "$2", driving the PortMaster progress bar with "$3" as
+# the label. Falls back to a plain curl/wget if the progress dialog isn't available.
+http_get() {
+    local url="$1" dest="$2" message="${3:-Downloading}"
+
+    if __missing_reqs "curl" "wget"; then
+        pm_show_error "curl or wget is required to perform this function." && return 1
+    fi
+
+    local total current pid result
+    total=$(http_get_size "$url")
+
+    [ -e "$PM_PIPE" ] || { PortMasterDialogInit "no-harbour"; PortMasterDialog "messages_begin"; }
+
+    : > "$dest"
+    if ! __no_req "curl"; then
+        curl -fsSL "$url" -o "$dest" &
+    else
+        wget -q "$url" -O "$dest" &
+    fi
+    pid=$!
+
+    while kill -0 "$pid" 2>/dev/null; do
+        current=$(wc -c < "$dest" 2>/dev/null)
+        PortMasterDialog "progress" "$message" "${current:-0}" "${total:-0}" "data"
+        sleep 0.5
+    done
+    wait "$pid"
+    result=$?
+
+    PortMasterDialog "progress_clear"
+
+    { [ "$result" -ne 0 ] || [ ! -s "$dest" ]; } && return 1
+    return 0
 }
 
 get_bin() {
     pm_message "Downloading Oni binary"
-    http_get "https://github.com/Cronocide/oni-armhf/releases/download/v1.1/oni" "$GAMEDIR/oni"
+    http_get "https://github.com/Cronocide/oni-armhf/releases/download/v1.1/oni" "$GAMEDIR/oni" "Downloading Oni binary"
     if [ $? -ne 0 ]; then
         pm_message "Failed to download Oni binary"
         return 1
@@ -89,7 +131,7 @@ get_bin() {
 get_gl4es() {
     pm_message "Downloading missing gl4es"
     [ ! -d "$GAMEDIR/gl4es.armhf/" ] && mkdir -p "$GAMEDIR/gl4es.armhf/"
-    http_get "https://github.com/Cronocide/oni-pm/raw/refs/heads/trunk/oni/gl4es.armhf/libGL.so.1" "$GAMEDIR/gl4es.armhf/libGL.so.1"
+    http_get "https://github.com/Cronocide/oni-pm/raw/refs/heads/trunk/oni/gl4es.armhf/libGL.so.1" "$GAMEDIR/gl4es.armhf/libGL.so.1" "Downloading missing gl4es"
     if [ $? -ne 0 ]; then
         pm_message "Failed to download missing gl4es. Please reinstall the port"
         return 1
