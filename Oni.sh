@@ -144,7 +144,7 @@ http_get() {
 
 get_bin() {
     pm_message "Downloading Oni binary"
-    http_get "https://github.com/Cronocide/oni-armhf/releases/download/v1.1/oni" "$GAMEDIR/oni" "Downloading Oni binary"
+    http_get "https://github.com/Cronocide/oni-armhf/releases/download/v1.2/oni" "$GAMEDIR/oni" "Downloading Oni binary"
     if [ $? -ne 0 ]; then
         pm_message "Failed to download Oni binary"
         return 1
